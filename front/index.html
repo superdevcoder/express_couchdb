@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Blog CRUD</title>
+    <style>
+        input[type='submit'], button, [aria-label] {
+            cursor: pointer;
+        }
+
+        #spoiler {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<form action="javascript:void(0);" method="POST" onsubmit="app.Add()">
+    <input type="text" id="add-name" placeholder="New Blog">
+    <input type="submit" value="Add">
+</form>
+
+<div id="spoiler" role="aria-hidden">
+    <form action="javascript:void(0);" method="POST" id="saveEdit">
+        <input type="text" id="edit-name">
+        <input type="submit" value="Edit"/> <a onclick="CloseInput()" aria-label="Close">&#10006;</a>
+    </form>
+</div>
+
+<p id="counter"></p>
+
+<table>
+    <tr>
+        <th>Name</th>
+    </tr>
+    <tbody id="blogs">
+    </tbody>
+</table>
+<script src="blog_api.js"></script>
+<script>
+    const app = new function () {
+    
+        this.el = document.getElementById('blogs');
+
+        this.ids = [/*'Blog1', 'Blog2', 'Blog3', 'Blog4', 'Blog5'*/];
+        this.blogs = [/*'Blog1', 'Blog2', 'Blog3', 'Blog4', 'Blog5'*/];
+
+        this.Count = function (data) {
+            const el = document.getElementById('counter');
+
+            if (data) {
+                el.innerHTML = data + ' ' + data > 1 ? 'blogs' : 'blog';
+            } else {
+                el.innerHTML = 'No blog';
+            }
+        };
+
+        this.FetchAll = function () {
+            let data = '';
+
+            if (this.blogs.length > 0) {
+                for (let i = 0; i < this.blogs.length; i++) {
+                    data += '<tr>';
+                    data += '<td>' + this.blogs[i] + '</td>';
+                    data += '<td><button onclick="app.Edit(' + i + ')">Edit</button></td>';
+                    data += '<td><button onclick="app.Delete(' + i + ')">Delete</button></td>';
+                    data += '</tr>';
+                }
+            }
+
+            this.Count(this.blogs.length);
+            return this.el.innerHTML = data;
+        };
+
+        this.Add = function () {
+            const el = document.getElementById('add-name');
+            // Get the value
+            const blog = el.value;
+
+            if (blog) {
+                // Add the new value
+                this.blogs.push(blog.trim());
+                // Reset input value
+                el.value = '';
+                // Display the new list
+                this.FetchAll();
+                createBlog(blog);
+            }
+        };
+
+        this.Edit = function (item) {
+            const el = document.getElementById('edit-name');
+            // Display value in the field
+            el.value = this.blogs[item];
+            // Display fields
+            document.getElementById('spoiler').style.display = 'block';
+            self = this;
+
+            document.getElementById('saveEdit').onsubmit = function () {
+                // Get value
+                const blog = el.value;
+
+                if (blog) {
+                    // Edit value
+                    self.blogs.splice(item, 1, blog.trim());
+                    console.log("pooh id = ", self.ids[item]);
+                    updateBlog(self.ids[item], blog.trim());
+                    // Display the new list
+                    self.FetchAll();
+                    // Hide fields
+                    CloseInput();
+                }
+            }
+        };
+
+        this.Delete = function (item) {
+            // Delete the current row  
+            deleteBlog(this.ids[item]);          
+            this.ids.splice(item, 1);
+            this.blogs.splice(item, 1);
+            // Display the new list
+            this.FetchAll();
+        };
+
+        getBlogs();
+
+    }
+
+    app.FetchAll();
+
+    function CloseInput() {
+        document.getElementById('spoiler').style.display = 'none';
+    }
+</script>
+</body>
+</html>
